@@ -24,6 +24,7 @@ $config['system.performance']['css']['preprocess'] = 0;
 $config['system.performance']['js']['preprocess'] = 0;
 
 // Stage file proxy URL from production URL
+// @TODO: update with new LAGOON_ROUTES
 if(getenv('AMAZEEIO_PRODUCTION_URL')){
   $config['stage_file_proxy.settings']['origin'] = getenv('AMAZEEIO_PRODUCTION_URL');
 }

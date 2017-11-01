@@ -26,10 +26,10 @@
  */
 
 ### amazee.io Database connection
-if(getenv('AMAZEEIO_SITENAME')){
+if(getenv('LAGOON_PROJECT')){
   $databases['default']['default'] = array(
     'driver' => 'mysql',
-    'database' => getenv('AMAZEEIO_SITENAME'),
+    'database' => getenv('LAGOON_PROJECT'),
     'username' => getenv('DB_USERNAME'),
     'password' => getenv('DB_PASSWORD'),
     'host' => getenv('DB_HOST'),
@@ -41,28 +41,28 @@ if(getenv('AMAZEEIO_SITENAME')){
 ### amazee.io Solr connection
 // WARNING: you have to create a search_api server having "solr" machine name at
 // /admin/config/search/search-api/add-server to make this work.
-if (getenv('AMAZEEIO_SOLR_HOST') && getenv('AMAZEEIO_SOLR_PORT')) {
-  $config['search_api.server.solr']['backend_config']['connector_config']['host'] = getenv('AMAZEEIO_SOLR_HOST');
+if (getenv('SOLR_HOST') && getenv('SOLR_PORT')) {
+  $config['search_api.server.solr']['backend_config']['connector_config']['host'] = getenv('SOLR_HOST');
   $config['search_api.server.solr']['backend_config']['connector_config']['path'] = '/solr/';
-  $config['search_api.server.solr']['backend_config']['connector_config']['core'] = getenv('AMAZEEIO_SOLR_CORE') ?: getenv('AMAZEEIO_SITENAME');
-  $config['search_api.server.solr']['backend_config']['connector_config']['port'] = getenv('AMAZEEIO_SOLR_PORT');
-  $config['search_api.server.solr']['backend_config']['connector_config']['http_user'] = (getenv('AMAZEEIO_SOLR_USER') ?: '');
-  $config['search_api.server.solr']['backend_config']['connector_config']['http']['http_user'] = (getenv('AMAZEEIO_SOLR_USER') ?: '');
-  $config['search_api.server.solr']['backend_config']['connector_config']['http_pass'] = (getenv('AMAZEEIO_SOLR_PASSWORD') ?: '');
-  $config['search_api.server.solr']['backend_config']['connector_config']['http']['http_pass'] = (getenv('AMAZEEIO_SOLR_PASSWORD') ?: '');
-  $config['search_api.server.solr']['name'] = 'AmazeeIO Solr - Environment: ' . getenv('AMAZEEIO_SITE_ENVIRONMENT');
+  $config['search_api.server.solr']['backend_config']['connector_config']['core'] = getenv('SOLR_CORE') ?: getenv('LAGOON_PROJECT');
+  $config['search_api.server.solr']['backend_config']['connector_config']['port'] = getenv('SOLR_PORT');
+  $config['search_api.server.solr']['backend_config']['connector_config']['http_user'] = (getenv('SOLR_USER') ?: '');
+  $config['search_api.server.solr']['backend_config']['connector_config']['http']['http_user'] = (getenv('SOLR_USER') ?: '');
+  $config['search_api.server.solr']['backend_config']['connector_config']['http_pass'] = (getenv('SOLR_PASSWORD') ?: '');
+  $config['search_api.server.solr']['backend_config']['connector_config']['http']['http_pass'] = (getenv('SOLR_PASSWORD') ?: '');
+  $config['search_api.server.solr']['name'] = 'AmazeeIO Solr - Environment: ' . getenv('LAGOON_ENVIRONMENT_TYPE');
 }
 
 ### amazee.io Varnish & Reverse proxy settings
-if (getenv('AMAZEEIO_VARNISH_HOSTS') && getenv('AMAZEEIO_VARNISH_SECRET')) {
-  $varnish_hosts = explode(',', getenv('AMAZEEIO_VARNISH_HOSTS'));
+if (getenv('VARNISH_HOSTS') && getenv('VARNISH_SECRET')) {
+  $varnish_hosts = explode(',', getenv('VARNISH_HOSTS'));
   array_walk($varnish_hosts, function(&$value, $key) { $value .= ':6082'; });
 
   $settings['reverse_proxy'] = TRUE;
-  $settings['reverse_proxy_addresses'] = array_merge(explode(',', getenv('AMAZEEIO_VARNISH_HOSTS')), array('127.0.0.1'));
+  $settings['reverse_proxy_addresses'] = array_merge(explode(',', getenv('VARNISH_HOSTS')), array('127.0.0.1'));
 
   $config['varnish.settings']['varnish_control_terminal'] = implode($varnish_hosts, " ");
-  $config['varnish.settings']['varnish_control_key'] = getenv('AMAZEEIO_VARNISH_SECRET');
+  $config['varnish.settings']['varnish_control_key'] = getenv('VARNISH_SECRET');
   $config['varnish.settings']['varnish_version'] = 4;
 }
 
@@ -73,13 +73,11 @@ if (getenv('AMAZEEIO_VARNISH_HOSTS') && getenv('AMAZEEIO_VARNISH_SECRET')) {
 //);
 
 ### Temp directory
-if (getenv('AMAZEEIO_TMP_PATH')) {
-  $config['system.file']['path']['temporary'] = getenv('AMAZEEIO_TMP_PATH');
-}
+  $config['system.file']['path']['temporary'] = '/tmp';
 
 ### Hash Salt
-if (getenv('AMAZEEIO_HASH_SALT')) {
-  $settings['hash_salt'] = getenv('AMAZEEIO_HASH_SALT');
+if (getenv('HASH_SALT')) {
+  $settings['hash_salt'] = getenv('HASH_SALT');
 }
 
 // Settings for all environments
@@ -92,15 +90,15 @@ if (file_exists(__DIR__ . '/all.services.yml')) {
   $settings['container_yamls'][] = __DIR__ . '/all.services.yml';
 }
 
-if(getenv('AMAZEEIO_SITE_ENVIRONMENT')){
+if(getenv('LAGOON_ENVIRONMENT_TYPE')){
   // Environment specific settings files.
-  if (file_exists(__DIR__ . '/' . getenv('AMAZEEIO_SITE_ENVIRONMENT') . '.settings.php')) {
-    include __DIR__ . '/' . getenv('AMAZEEIO_SITE_ENVIRONMENT') . '.settings.php';
+  if (file_exists(__DIR__ . '/' . getenv('LAGOON_ENVIRONMENT_TYPE') . '.settings.php')) {
+    include __DIR__ . '/' . getenv('LAGOON_ENVIRONMENT_TYPE') . '.settings.php';
   }
 
   // Environment specific services files.
-  if (file_exists(__DIR__ . '/' . getenv('AMAZEEIO_SITE_ENVIRONMENT') . '.services.yml')) {
-    $settings['container_yamls'][] = __DIR__ . '/' . getenv('AMAZEEIO_SITE_ENVIRONMENT') . '.services.yml';
+  if (file_exists(__DIR__ . '/' . getenv('LAGOON_ENVIRONMENT_TYPE') . '.services.yml')) {
+    $settings['container_yamls'][] = __DIR__ . '/' . getenv('LAGOON_ENVIRONMENT_TYPE') . '.services.yml';
   }
 }
 
