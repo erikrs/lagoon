@@ -3,15 +3,15 @@ global $sitegroup_name;
 use Symfony\Component\Yaml\Yaml;
 
 // For CI: allow to completely disable amazee.io alias loading
-if (getenv('AMAZEEIO_DISABLE_ALIASES')) {
-  drush_log('AMAZEEIO_DISABLE_ALIASES is set, bailing out of loading amazeeio aliases');
+if (getenv('LAGOON_DISABLE_ALIASES')) {
+  drush_log('LAGOON_DISABLE_ALIASES is set, bailing out of loading amazeeio aliases');
   return;
 }
 
 // Allow to override sitegroup via environment variable
-if (getenv('AMAZEEIO_OVERRIDE_SITEGROUP')) {
-  $sitegroup_name = getenv('AMAZEEIO_OVERRIDE_SITEGROUP');
-  drush_log("AMAZEEIO_OVERRIDE_SITEGROUP is set, using '$sitegroup_name' as sitegroup");
+if (getenv('LAGOON_OVERRIDE_SITEGROUP')) {
+  $sitegroup_name = getenv('LAGOON_OVERRIDE_SITEGROUP');
+  drush_log("LAGOON_OVERRIDE_SITEGROUP is set, using '$sitegroup_name' as sitegroup");
 }
 
 if (empty($sitegroup_name)) {
@@ -29,7 +29,7 @@ if (empty($sitegroup_name)) {
             $parent = dirname($path);
             return in_array($parent, ['.', $path]) ? false : $parent;
         }
-     }     
+     }
    } else {
      $path = drush_locate_root(drush_get_option('root')) ?: getcwd(); // trying to find the main root folder of drupal, if that fails, just the current folder
    }
@@ -92,17 +92,17 @@ if (empty($sitegroup_name)) {
 
 // Some special things to make sure Jenkins does never cache the aliases.
 $suffix = getenv('JENKINS_HOME') ? '_' . getenv('BUILD_NUMBER') : '';
-$cid = "amazeeio_aliases_$sitegroup_name$suffix";
+$cid = "lagoon_aliases_$sitegroup_name$suffix";
 
 // Try to pull the aliases from the cache.
 $cache = drush_cache_get($cid);
 
 // Drush does not respect the cache expire, so we need to check it ourselves.
-if (isset($cache->data) && time() < $cache->expire && getenv('AMAZEEIO_IGNORE_DRUSHCACHE') === FALSE) {
+if (isset($cache->data) && time() < $cache->expire && getenv('LAGOON_IGNORE_DRUSHCACHE') === FALSE) {
   drush_log('Hit amazee.io sitegroup cache');
   $aliases = $cache->data;
 
-  if (getenv('AMAZEEIO_DEBUG')) {
+  if (getenv('LAGOON_DEBUG')) {
     drush_log("Aliases found in cache: " . var_export($aliases, true));
   }
 
@@ -140,8 +140,8 @@ $query = sprintf('{
   }
 }', $sitegroup_name);
 
-$api = getenv('AMAZEEIO_OVERRIDE_API_ENDPOINT') ? getenv('AMAZEEIO_OVERRIDE_API_ENDPOINT') : 'https://api.amazeeio.services/graphql';
-$jwt_token = getenv('AMAZEEIO_OVERRIDE_JWT_TOKEN') ? getenv('AMAZEEIO_OVERRIDE_JWT_TOKEN') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzc2hLZXkiOiJBQUFBQzNOemFDMWxaREkxTlRFNUFBQUFJTU9XTkg4VFpITGlFamJZNzNlbC9PNGp4cUdaczVzQjZ1MFdRTTFWZUVreiIsImlzcyI6ImF1dGgtc2VydmVyLmRldiIsInJvbGUiOiJkcnVzaCIsImF1ZCI6ImFwaS5kZXYiLCJpYXQiOjE1MDQ0MzA2NDh9.mpQKsKaA4WgriFQvzz2cgggG_8OBY0G9VpKpKx3uhas';
+$api = getenv('LAGOON_OVERRIDE_API_ENDPOINT') ? getenv('LAGOON_OVERRIDE_API_ENDPOINT') : 'https://api.amazeeio.services/graphql';
+$jwt_token = getenv('LAGOON_OVERRIDE_JWT_TOKEN') ? getenv('LAGOON_OVERRIDE_JWT_TOKEN') : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzc2hLZXkiOiJBQUFBQzNOemFDMWxaREkxTlRFNUFBQUFJTU9XTkg4VFpITGlFamJZNzNlbC9PNGp4cUdaczVzQjZ1MFdRTTFWZUVreiIsImlzcyI6ImF1dGgtc2VydmVyLmRldiIsInJvbGUiOiJkcnVzaCIsImF1ZCI6ImFwaS5kZXYiLCJpYXQiOjE1MDQ0MzA2NDh9.mpQKsKaA4WgriFQvzz2cgggG_8OBY0G9VpKpKx3uhas';
 
 drush_log("Using $api as amazee.io API endpoint");
 
@@ -161,7 +161,7 @@ curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(array(
 
 $response = curl_exec($curl);
 
-if (getenv('AMAZEEIO_DEBUG')) {
+if (getenv('LAGOON_DEBUG')) {
   drush_log("Response from api: " . var_export($response, true));
 }
 
@@ -180,7 +180,7 @@ if ($response === FALSE) {
 curl_close($curl);
 $response = json_decode($response);
 
-if (getenv('AMAZEEIO_DEBUG')) {
+if (getenv('LAGOON_DEBUG')) {
   drush_log("Decoded response from api: " . var_export($response, true));
 }
 
@@ -241,7 +241,7 @@ $aliases = array_reduce($sites, function ($carry, $item) use ($defaults) {
 
     if (isset($jump_host)) {
       $conditional = [
-        'ssh-options' => "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ProxyCommand=\"ssh -W %h:%p $jump_host -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $LC_AMAZEEIO_SSH_OPTIONS -o USER=$site_name 2> /dev/null\"",
+        'ssh-options' => "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ProxyCommand=\"ssh -W %h:%p $jump_host -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $LC_LAGOON_SSH_OPTIONS -o USER=$site_name 2> /dev/null\"",
       ];
     }
 
@@ -268,7 +268,7 @@ $aliases = array_reduce($sites, function ($carry, $item) use ($defaults) {
   return $carry + $aliases;
 }, []);
 
-if (getenv('AMAZEEIO_DEBUG')) {
+if (getenv('LAGOON_DEBUG')) {
   drush_log("Generated aliases: " . var_export($aliases, true));
 }
 

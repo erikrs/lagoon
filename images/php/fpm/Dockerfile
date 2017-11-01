@@ -54,10 +54,10 @@ RUN apk update \
 
 EXPOSE 9000
 
-ENV AMAZEEIO_DB_HOST=mariadb \
-    AMAZEEIO_DB_PORT=3306 \
-    AMAZEEIO_DB_USERNAME=drupal \
-    AMAZEEIO_DB_PASSWORD=drupal \
+ENV DB_HOST=mariadb \
+    DB_PORT=3306 \
+    DB_USERNAME=drupal \
+    DB_PASSWORD=drupal \
     AMAZEEIO_SITENAME=drupal \
     AMAZEEIO_SITE_NAME=drupal \
     AMAZEEIO_SITE_ENVIRONMENT=development \
